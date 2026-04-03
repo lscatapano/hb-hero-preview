@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HELLO BISTRO. Salads. Burgers. Together.</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ── REAL HB NAV ── */
+  #hb-nav {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    z-index: 1000;
+    background: #3a3630;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 48px;
+  }
+
+  #hb-nav .logo img {
+    height: 30px;
+    width: auto;
+  }
+
+  #hb-nav ul {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    list-style: none;
+  }
+
+  #hb-nav ul a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+  }
+
+  #hb-nav ul a:hover { opacity: 1; }
+
+  /* ── CANVAS HERO ── */
+  #hero {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    margin-top: 44px;
+    background: #000;
+    overflow: hidden;
+  }
+
+  canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  #loader {
+    position: absolute;
+    inset: 0;
+    background: #1a1a1a;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    transition: opacity 0.6s;
+  }
+
+  #loader img { height: 28px; opacity: 0.7; }
+
+  .loader-track {
+    width: 160px;
+    height: 1px;
+    background: rgba(255,255,255,0.15);
+    overflow: hidden;
+  }
+
+  .loader-fill {
+    height: 100%;
+    background: #fff;
+    width: 0%;
+    transition: width 0.08s linear;
+  }
+
+  .loader-pct {
+    color: rgba(255,255,255,0.35);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  #dots {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 9;
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+
+  #dots.visible { opacity: 1; }
+
+  .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    cursor: pointer;
+    transition: background 0.3s, transform 0.3s;
+    position: relative;
+  }
+
+  .dot.active { background: #fff; transform: scale(1.6); }
+
+  .dot-label {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,0.4);
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .dot:hover .dot-label,
+  .dot.active .dot-label { opacity: 1; }
+
+  #progress {
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 2px;
+    background: rgba(255,255,255,0.7);
+    z-index: 9;
+    width: 0%;
+  }
+
+  #scroll-hint {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    z-index: 9;
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+
+  #scroll-hint.visible { opacity: 1; }
+
+  #scroll-hint span {
+    color: rgba(255,255,255,0.4);
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .hint-line {
+    width: 1px;
+    height: 24px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.9; }
+  }
+
+  #ghost-scroll {
+    position: absolute;
+    inset: 0;
+    overflow-y: scroll;
+    z-index: 8;
+    opacity: 0;
+  }
+
+  /* ── LOCATIONS SECTION ── */
+  #locations {
+    position: relative;
+    background: #f0f0e8;
+    overflow: hidden;
+    padding: 50px 0;
+  }
+
+  .locations-map-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url('https://www.hellobistro.com/Static/images/locations-map.png');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.3;
+  }
+
+  .locations-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 40px;
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+  }
+
+  .locations-text {
+    flex: 1;
+  }
+
+  .locations-text h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #3a3630;
+    margin-bottom: 6px;
+  }
+
+  .locations-text p {
+    font-size: 13px;
+    color: #3a3630;
+    margin-bottom: 24px;
+  }
+
+  .location-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    gap: 16px;
+  }
+
+  .location-row:first-of-type { border-top: 1px solid rgba(0,0,0,0.1); }
+
+  .location-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #3a3630;
+    min-width: 160px;
+  }
+
+  .location-hours {
+    font-size: 11px;
+    color: #666;
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .location-hours strong {
+    color: #3a3630;
+    display: block;
+  }
+
+  .btn-order {
+    background: #7a9e2e;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    border-radius: 20px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .choose-location {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #3a3630;
+    text-decoration: none;
+    border: 1px solid #3a3630;
+    padding: 10px 20px;
+    border-radius: 20px;
+    width: fit-content;
+  }
+
+  .locations-image {
+    width: 280px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .locations-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── CATERING SECTION ── */
+  #catering {
+    position: relative;
+    background: #fff;
+    text-align: center;
+    padding: 60px 40px;
+  }
+
+  .catering-img {
+    width: 100%;
+    max-height: 360px;
+    object-fit: cover;
+    display: block;
+    clip-path: polygon(0 8%, 100% 0%, 100% 92%, 0% 100%);
+    margin-bottom: -30px;
+  }
+
+  .catering-content {
+    position: relative;
+    z-index: 1;
+    padding: 40px 40px 20px;
+  }
+
+  .catering-content h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #3a3630;
+    margin-bottom: 12px;
+  }
+
+  .catering-content p {
+    font-size: 13px;
+    color: #666;
+    max-width: 560px;
+    margin: 0 auto 24px;
+    line-height: 1.6;
+  }
+
+  .btn-catering {
+    display: inline-block;
+    background: #7a9e2e;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 12px 28px;
+    border-radius: 24px;
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- REAL HB NAV -->
+<nav id="hb-nav">
+  <div class="logo">
+    <a href="https://www.hellobistro.com/">
+      <img src="https://www.hellobistro.com/Static/images/logo.svg" alt="Hello Bistro">
+    </a>
+  </div>
+  <ul>
+    <li><a href="https://www.hellobistro.com/order-online">Order Online</a></li>
+    <li><a href="https://www.hellobistro.com/locations">Find Us</a></li>
+    <li><a href="https://www.hellobistro.com/work-here">Work Here</a></li>
+    <li><a href="https://www.hellobistro.com/menu">Menu</a></li>
+    <li><a href="https://www.hellobistro.com/ezcater">Catering</a></li>
+    <li><a href="https://www.hellobistro.com/whats-new">What's New</a></li>
+    <li><a href="https://www.hellobistro.com/mobile-app">Mobile App</a></li>
+  </ul>
+</nav>
+
+<!-- CANVAS HERO — replaces the banner -->
+<div id="hero">
+  <canvas id="canvas"></canvas>
+
+  <div id="loader">
+    <img src="https://www.hellobistro.com/Static/images/logo.svg" alt="Hello Bistro">
+    <div class="loader-track">
+      <div class="loader-fill" id="loader-fill"></div>
+    </div>
+    <div class="loader-pct" id="loader-pct">0%</div>
+  </div>
+
+  <div id="dots">
+    <div class="dot active" data-index="0"><span class="dot-label">01</span></div>
+    <div class="dot" data-index="1"><span class="dot-label">02</span></div>
+    <div class="dot" data-index="2"><span class="dot-label">03</span></div>
+    <div class="dot" data-index="3"><span class="dot-label">04</span></div>
+    <div class="dot" data-index="4"><span class="dot-label">05</span></div>
+  </div>
+
+  <div id="progress"></div>
+
+  <div id="scroll-hint">
+    <span>Scroll</span>
+    <div class="hint-line"></div>
+  </div>
+
+  <div id="ghost-scroll">
+    <div id="ghost-inner"></div>
+  </div>
+</div>
+
+<!-- LOCATIONS — real HB layout -->
+<div id="locations">
+  <div class="locations-map-bg"></div>
+  <div class="locations-inner">
+    <div class="locations-text">
+      <h2>We're Local!</h2>
+      <p>Visit us at one of the locations below.</p>
+
+      <div class="location-row">
+        <div class="location-name">Downtown<br>(Forbes & Wood)</div>
+        <div class="location-hours"><strong>Monday - Friday</strong>10:30am - 6pm<br><strong>Saturday - Sunday</strong>Closed</div>
+        <a class="btn-order" href="https://Order.hellobistro.com/store-details?id=HBUS-2503">Order Pickup or Delivery</a>
+      </div>
+      <div class="location-row">
+        <div class="location-name">McCandless Crossing</div>
+        <div class="location-hours"><strong>Every day</strong>11am - 9pm</div>
+        <a class="btn-order" href="https://Order.hellobistro.com/store-details?id=HBUS-2504">Order Pickup or Delivery</a>
+      </div>
+      <div class="location-row">
+        <div class="location-name">Oakland (Pitt campus)</div>
+        <div class="location-hours"><strong>Every day</strong>10:30am - 9pm</div>
+        <a class="btn-order" href="https://Order.hellobistro.com/store-details?id=HBUS-2501">Order Pickup or Delivery</a>
+      </div>
+      <div class="location-row">
+        <div class="location-name">Siena at St. Clair</div>
+        <div class="location-hours"><strong>Every day</strong>11am - 9pm</div>
+        <a class="btn-order" href="https://Order.hellobistro.com/store-details?id=HBUS-2506">Order Pickup or Delivery</a>
+      </div>
+      <div class="location-row">
+        <div class="location-name">Village at Pine</div>
+        <div class="location-hours"><strong>Every day</strong>11am - 9pm</div>
+        <a class="btn-order" href="https://Order.hellobistro.com/store-details?id=HBUS-2505">Order Pickup or Delivery</a>
+      </div>
+      <a class="choose-location" href="https://www.hellobistro.com/locations">Choose a Different Location</a>
+    </div>
+    <div class="locations-image">
+      <img src="https://www.hellobistro.com/UserFiles/Location/downtown_home.jpg" alt="Downtown location">
+    </div>
+  </div>
+</div>
+
+<!-- CATERING SECTION -->
+<div id="catering">
+  <img class="catering-img" src="https://www.hellobistro.com/Static/images/locations-storefront.jpg" alt="Catering">
+  <div class="catering-content">
+    <h2>Catering Made Easy with EzCater!</h2>
+    <p>"Easy." That's what you want out of party planning! Luckily, Hello Bistro catering on ezCater makes it easy peasy. Select the day, number of guests, and assortment of salads, grains + greens, wraps, and more to streamline the process.</p>
+    <a class="btn-catering" href="https://www.hellobistro.com/ezcater">Place Your Order Here!</a>
+  </div>
+</div>
+
+<script>
+  const BASE_URL     = 'https://res.cloudinary.com/dqhimnflw/image/upload/';
+  const FIRST_FRAME  = 1000;
+  const LAST_FRAME   = 1364;
+  const TOTAL_FRAMES = LAST_FRAME - FIRST_FRAME + 1; // 365 frames
+  const CHAPTERS     = [0, 73, 146, 219, 292];
+  const PX_PER_FRAME = 14;
+  const SNAP_HOLD_PX = 220;
+  const LERP_FACTOR  = 0.055;
+
+  const canvas      = document.getElementById('canvas');
+  const ctx         = canvas.getContext('2d');
+  const ghost       = document.getElementById('ghost-scroll');
+  const ghostInner  = document.getElementById('ghost-inner');
+  const loader      = document.getElementById('loader');
+  const loaderFill  = document.getElementById('loader-fill');
+  const loaderPct   = document.getElementById('loader-pct');
+  const progressEl  = document.getElementById('progress');
+  const dotsEl      = document.getElementById('dots');
+  const scrollHint  = document.getElementById('scroll-hint');
+  const dots        = Array.from(document.querySelectorAll('.dot'));
+
+  const frames      = new Array(TOTAL_FRAMES).fill(null);
+  let loadedCount   = 0;
+  let currentFrame  = 0;
+  let targetFrame   = 0;
+  let displayFrame  = 0;
+  let rafId         = null;
+  let hasScrolled   = false;
+  let currentChapter = 0;
+  let revealed      = false;
+
+  function resizeCanvas() {
+    const w = canvas.offsetWidth;
+    const h = canvas.offsetHeight;
+    canvas.width  = w * window.devicePixelRatio;
+    canvas.height = h * window.devicePixelRatio;
+    ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+    if (frames[currentFrame]) drawFrame(currentFrame);
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+
+  function preload() {
+    for (let i = 0; i < TOTAL_FRAMES; i++) {
+      const img = new Image();
+      img.onload = () => {
+        frames[i] = img;
+        loadedCount++;
+        const pct = Math.round(loadedCount / TOTAL_FRAMES * 100);
+        loaderFill.style.width = pct + '%';
+        loaderPct.textContent  = pct + '%';
+        if (!revealed && loadedCount >= 20) revealExperience();
+      };
+      img.onerror = () => { loadedCount++; };
+      img.src = `${BASE_URL}${FIRST_FRAME + i}.jpg?v=1775232545`;
+    }
+  }
+
+  function revealExperience() {
+    if (revealed) return;
+    revealed = true;
+    resizeCanvas();
+    drawFrame(0);
+    const totalPx = TOTAL_FRAMES * PX_PER_FRAME + (CHAPTERS.length - 1) * SNAP_HOLD_PX + window.innerHeight;
+    ghostInner.style.height = totalPx + 'px';
+    loader.style.opacity = '0';
+    setTimeout(() => { loader.style.display = 'none'; }, 600);
+    dotsEl.classList.add('visible');
+    scrollHint.classList.add('visible');
+  }
+
+  function drawFrame(index) {
+    const img = frames[index];
+    if (!img) {
+      for (let d = 1; d < 30; d++) {
+        const prev = frames[Math.max(0, index - d)];
+        if (prev) { drawFrame(Math.max(0, index - d)); return; }
+        const next = frames[Math.min(TOTAL_FRAMES - 1, index + d)];
+        if (next) { drawFrame(Math.min(TOTAL_FRAMES - 1, index + d)); return; }
+      }
+      return;
+    }
+    const w = canvas.offsetWidth;
+    const h = canvas.offsetHeight;
+    // Cover — fills full canvas, crops as needed, no borders
+    const imgAspect = img.naturalWidth / img.naturalHeight;
+    const canvasAspect = w / h;
+    let dw, dh, dx, dy;
+    if (imgAspect > canvasAspect) {
+      // Image wider than canvas — fit by height, crop sides
+      dh = h; dw = h * imgAspect;
+      dx = (w - dw) / 2; dy = 0;
+    } else {
+      // Image taller than canvas — fit by width, crop top/bottom
+      dw = w; dh = w / imgAspect;
+      dx = 0; dy = (h - dh) / 2;
+    }
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(img, dx, dy, dw, dh);
+    currentFrame = index;
+  }
+
+  function getFrameFromScroll(scrollY) {
+    let rem = scrollY;
+    for (let c = 0; c < CHAPTERS.length; c++) {
+      const start = CHAPTERS[c];
+      const end   = c < CHAPTERS.length - 1 ? CHAPTERS[c + 1] - 1 : TOTAL_FRAMES - 1;
+      const px    = (end - start + 1) * PX_PER_FRAME;
+      if (rem <= px) return { frame: start + Math.floor(rem / PX_PER_FRAME), chapter: c };
+      rem -= px;
+      if (c < CHAPTERS.length - 1) {
+        if (rem <= SNAP_HOLD_PX) return { frame: end, chapter: c };
+        rem -= SNAP_HOLD_PX;
+      }
+    }
+    return { frame: TOTAL_FRAMES - 1, chapter: CHAPTERS.length - 1 };
+  }
+
+  function startRAF() {
+    if (rafId) return;
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function loop() {
+    const diff = targetFrame - displayFrame;
+    if (Math.abs(diff) > 0.1) {
+      displayFrame += diff * LERP_FACTOR;
+      const idx = Math.max(0, Math.min(Math.round(displayFrame), TOTAL_FRAMES - 1));
+      if (idx !== currentFrame) drawFrame(idx);
+      rafId = requestAnimationFrame(loop);
+    } else {
+      displayFrame = targetFrame;
+      const idx = Math.max(0, Math.min(Math.round(targetFrame), TOTAL_FRAMES - 1));
+      if (idx !== currentFrame) drawFrame(idx);
+      rafId = null;
+    }
+  }
+
+  ghost.addEventListener('scroll', () => {
+    if (!hasScrolled) { hasScrolled = true; scrollHint.classList.remove('visible'); }
+    const { frame, chapter } = getFrameFromScroll(ghost.scrollTop);
+    targetFrame = frame;
+    if (chapter !== currentChapter) {
+      dots[currentChapter].classList.remove('active');
+      dots[chapter].classList.add('active');
+      currentChapter = chapter;
+    }
+    const totalPx = TOTAL_FRAMES * PX_PER_FRAME + (CHAPTERS.length - 1) * SNAP_HOLD_PX;
+    progressEl.style.width = Math.min(ghost.scrollTop / totalPx * 100, 100) + '%';
+    startRAF();
+  }, { passive: true });
+
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      const ci = parseInt(dot.dataset.index);
+      let target = 0;
+      for (let c = 0; c < ci; c++) {
+        const start = CHAPTERS[c];
+        const end   = CHAPTERS[c + 1] - 1;
+        target += (end - start + 1) * PX_PER_FRAME + SNAP_HOLD_PX;
+      }
+      ghost.scrollTo({ top: target, behavior: 'smooth' });
+    });
+  });
+
+  setTimeout(() => { if (!revealed && loadedCount > 0) revealExperience(); }, 1000);
+  resizeCanvas();
+  preload();
+</script>
+</body>
+</html>

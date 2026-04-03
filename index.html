@@ -13,7 +13,7 @@
     overflow-x: hidden;
   }
 
-  /* ── REAL HB NAV ── */
+  /* ── NAV — DESKTOP ── */
   #hb-nav {
     position: fixed;
     top: 0; left: 0;
@@ -27,10 +27,7 @@
     gap: 48px;
   }
 
-  #hb-nav .logo img {
-    height: 30px;
-    width: auto;
-  }
+  #hb-nav .logo img { height: 30px; width: auto; }
 
   #hb-nav ul {
     display: flex;
@@ -52,6 +49,51 @@
 
   #hb-nav ul a:hover { opacity: 1; }
 
+  /* Mobile nav elements — hidden on desktop */
+  #nav-hamburger,
+  #nav-order-btn { display: none; }
+
+  /* ── NAV — MOBILE ── */
+  @media (max-width: 768px) {
+    #hb-nav {
+      justify-content: space-between;
+      padding: 0 16px;
+      gap: 0;
+      height: 54px;
+    }
+
+    #hb-nav ul { display: none; }
+
+    #nav-hamburger {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 8px;
+      background: none;
+      border: none;
+    }
+
+    #nav-hamburger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: #fff;
+    }
+
+    #hb-nav .logo img { height: 28px; }
+
+    #nav-order-btn {
+      display: block;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+  }
+
   /* ── CANVAS HERO ── */
   #hero {
     position: relative;
@@ -60,6 +102,15 @@
     margin-top: 44px;
     background: #000;
     overflow: hidden;
+  }
+
+  @media (max-width: 768px) {
+    #hero {
+      margin-top: 54px;
+      height: 56vw; /* 16:9-ish but shorter on mobile like real site */
+      min-height: 260px;
+      max-height: 420px;
+    }
   }
 
   canvas {
@@ -201,6 +252,13 @@
     opacity: 0;
   }
 
+  /* Hide scroll hint + dots on mobile */
+  @media (max-width: 768px) {
+    #scroll-hint { display: none; }
+    #dots { right: 10px; gap: 8px; }
+    .dot-label { display: none; }
+  }
+
   /* ── LOCATIONS SECTION ── */
   #locations {
     position: relative;
@@ -229,9 +287,7 @@
     align-items: flex-start;
   }
 
-  .locations-text {
-    flex: 1;
-  }
+  .locations-text { flex: 1; }
 
   .locations-text h2 {
     font-size: 18px;
@@ -261,7 +317,7 @@
     font-size: 13px;
     font-weight: 600;
     color: #3a3630;
-    min-width: 160px;
+    min-width: 130px;
   }
 
   .location-hours {
@@ -319,6 +375,43 @@
     display: block;
   }
 
+  /* Locations mobile */
+  @media (max-width: 768px) {
+    #locations { padding: 36px 0 40px; }
+
+    .locations-inner {
+      flex-direction: column;
+      padding: 0 20px;
+      gap: 24px;
+    }
+
+    .locations-text h2 {
+      font-size: 22px;
+      text-align: center;
+    }
+
+    .locations-text p { text-align: center; }
+
+    .locations-image {
+      width: 100%;
+      height: 200px;
+      border-radius: 6px;
+    }
+
+    .location-row {
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .location-name { min-width: 100%; font-size: 14px; }
+
+    .location-hours { min-width: 100%; }
+
+    .btn-order { margin-left: auto; }
+
+    .choose-location { margin: 20px auto 0; }
+  }
+
   /* ── CATERING SECTION ── */
   #catering {
     position: relative;
@@ -369,17 +462,38 @@
     border-radius: 24px;
     text-decoration: none;
   }
+
+  /* Catering mobile */
+  @media (max-width: 768px) {
+    #catering { padding: 0 0 40px; }
+
+    .catering-img {
+      max-height: 240px;
+      clip-path: polygon(0 4%, 100% 0%, 100% 96%, 0% 100%);
+    }
+
+    .catering-content { padding: 30px 20px 20px; }
+
+    .catering-content h2 { font-size: 20px; }
+  }
 </style>
 </head>
 <body>
 
-<!-- REAL HB NAV -->
+<!-- NAV -->
 <nav id="hb-nav">
+  <!-- Mobile only -->
+  <button id="nav-hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+
   <div class="logo">
     <a href="https://www.hellobistro.com/">
       <img src="https://www.hellobistro.com/Static/images/logo.svg" alt="Hello Bistro">
     </a>
   </div>
+
+  <!-- Desktop links -->
   <ul>
     <li><a href="https://www.hellobistro.com/order-online">Order Online</a></li>
     <li><a href="https://www.hellobistro.com/locations">Find Us</a></li>
@@ -389,9 +503,12 @@
     <li><a href="https://www.hellobistro.com/whats-new">What's New</a></li>
     <li><a href="https://www.hellobistro.com/mobile-app">Mobile App</a></li>
   </ul>
+
+  <!-- Mobile only -->
+  <a id="nav-order-btn" href="https://www.hellobistro.com/order-online">Order</a>
 </nav>
 
-<!-- CANVAS HERO — replaces the banner -->
+<!-- CANVAS HERO -->
 <div id="hero">
   <canvas id="canvas"></canvas>
 
@@ -423,7 +540,7 @@
   </div>
 </div>
 
-<!-- LOCATIONS — real HB layout -->
+<!-- LOCATIONS -->
 <div id="locations">
   <div class="locations-map-bg"></div>
   <div class="locations-inner">
@@ -464,7 +581,7 @@
   </div>
 </div>
 
-<!-- CATERING SECTION -->
+<!-- CATERING -->
 <div id="catering">
   <img class="catering-img" src="https://www.hellobistro.com/Static/images/locations-storefront.jpg" alt="Catering">
   <div class="catering-content">
@@ -559,16 +676,13 @@
     }
     const w = canvas.offsetWidth;
     const h = canvas.offsetHeight;
-    // Cover — fills full canvas, crops as needed, no borders
     const imgAspect = img.naturalWidth / img.naturalHeight;
     const canvasAspect = w / h;
     let dw, dh, dx, dy;
     if (imgAspect > canvasAspect) {
-      // Image wider than canvas — fit by height, crop sides
       dh = h; dw = h * imgAspect;
       dx = (w - dw) / 2; dy = 0;
     } else {
-      // Image taller than canvas — fit by width, crop top/bottom
       dw = w; dh = w / imgAspect;
       dx = 0; dy = (h - dh) / 2;
     }
